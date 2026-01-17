@@ -1,0 +1,28 @@
+.tabs {
+  display: flex;
+  gap: 1vw;
+  margin-bottom: 3vh;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tab {
+  padding: 1.5vh 3vw;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: clamp(16px, 3.5vw, 20px);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.tab:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.activeTab {
+  color: #ffffff;
+  border-bottom-color: #ffffff;
+}
