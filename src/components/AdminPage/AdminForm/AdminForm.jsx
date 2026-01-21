@@ -147,8 +147,13 @@ function AdminForm({
                 alt={formValues.name || 'Preview'} 
                 style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain' }}
                 onError={(e) => {
-                  e.target.style.display = 'none';
+                  // Предотвращаем повторные попытки загрузки
+                  if (e.target.dataset.error !== 'true') {
+                    e.target.dataset.error = 'true'
+                    e.target.style.display = 'none'
+                  }
                 }}
+                loading="lazy"
               />
             </div>
           </div>

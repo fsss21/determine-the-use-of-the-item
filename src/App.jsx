@@ -1,16 +1,18 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import styles from './App.module.css'
 import Header from './components/Header/Header'
 import StartScreen from './components/StartScreen/StartScreen'
 import GameScreen from './components/GameScreen/GameScreen'
 import ResultScreen from './components/ResultScreen/ResultScreen'
 import AdminPage from './components/AdminPage/AdminPage'
+import CatalogScreen from './components/CatalogScreen/CatalogScreen'
 
 const GAME_STATES = {
   START: 'start',
   PLAYING: 'playing',
   RESULT: 'result',
-  ADMIN: 'admin'
+  ADMIN: 'admin',
+  CATALOG: 'catalog'
 }
 
 function App() {
@@ -19,10 +21,44 @@ function App() {
   const [selectedAnswer, setSelectedAnswer] = useState(null)
   const [gameItems, setGameItems] = useState([])
   const [loading, setLoading] = useState(true)
+  const [catalogId, setCatalogId] = useState(null)
+
+  const loadGameItems = useCallback(async () => {
+    try {
+      const response = await fetch('/api/items')
+      if (response.ok) {
+        const data = await response.json()
+        setGameItems(Array.isArray(data) ? data : [])
+        setLoading(false)
+        return
+      }
+    } catch (error) {
+      // Тихо игнорируем ошибки подключения к API (сервер может быть не запущен)
+      // Это нормально, так как у нас есть fallback механизм
+    }
+    
+    // Fallback: пробуем загрузить из public/json/gameItems.json напрямую
+    try {
+      const response = await fetch('/json/gameItems.json')
+      if (response.ok) {
+        const data = await response.json()
+        const enabledItems = Array.isArray(data) ? data.filter(item => item.enabled !== false) : []
+        setGameItems(enabledItems)
+      } else {
+        console.error('Не удалось загрузить предметы из public/json/gameItems.json')
+        setGameItems([])
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки предметов из public/json/gameItems.json:', error)
+      setGameItems([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     loadGameItems()
-  }, [])
+  }, [loadGameItems])
 
   const handleAdmin = () => {
     setGameState(GAME_STATES.ADMIN)
@@ -54,41 +90,7 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [])
-
-  const loadGameItems = async () => {
-    try {
-      const response = await fetch('/api/items')
-      if (response.ok) {
-        const data = await response.json()
-        setGameItems(Array.isArray(data) ? data : [])
-        setLoading(false)
-        return
-      } else {
-        console.error('Failed to load game items from API, trying public folder')
-      }
-    } catch (error) {
-      console.error('Error loading game items from API, trying public folder:', error)
-    }
-    
-    // Fallback: пробуем загрузить из public/json/gameItems.json напрямую
-    try {
-      const response = await fetch('/json/gameItems.json')
-      if (response.ok) {
-        const data = await response.json()
-        const enabledItems = Array.isArray(data) ? data.filter(item => item.enabled !== false) : []
-        setGameItems(enabledItems)
-      } else {
-        console.error('Failed to load game items from public folder')
-        setGameItems([])
-      }
-    } catch (error) {
-      console.error('Error loading game items from public folder:', error)
-      setGameItems([])
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [loadGameItems])
 
   const currentItem = gameItems[currentItemIndex]
 
@@ -102,9 +104,10 @@ function App() {
     setSelectedAnswer(answerIndex)
     setGameState(GAME_STATES.RESULT)
     
-    // Сохраняем статистику
-    if (currentItem) {
-      const isCorrect = answerIndex === currentItem.correctAnswer
+    // Сохраняем статистику - используем актуальный индекс
+    const item = gameItems[currentItemIndex]
+    if (item) {
+      const isCorrect = answerIndex === item.correctAnswer
       try {
         await fetch('/api/statistics', {
           method: 'POST',
@@ -112,7 +115,7 @@ function App() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            itemId: currentItem.id,
+            itemId: item.id,
             selectedAnswer: answerIndex,
             isCorrect: isCorrect
           }),
@@ -137,10 +140,27 @@ function App() {
     }
   }
 
-  const handleViewCatalog = (catalogId = null) => {
-    // TODO: Интеграция с каталогом
-    console.log('Переход к каталогу', catalogId || 'общий каталог')
-    // Здесь будет переход к каталогу
+  const handleViewCatalog = (itemCatalogId = null) => {
+    setCatalogId(itemCatalogId)
+    setGameState(GAME_STATES.CATALOG)
+  }
+
+  const handleCatalogClose = () => {
+    setCatalogId(null)
+    // Возвращаемся к экрану результата, если он был открыт
+    // Проверяем актуальное состояние через gameItems
+    const item = gameItems[currentItemIndex]
+    if (item && selectedAnswer !== null) {
+      setGameState(GAME_STATES.RESULT)
+    } else {
+      setGameState(GAME_STATES.START)
+    }
+  }
+
+  const handleCatalogItemClick = (item) => {
+    // При клике на предмет в каталоге можно показать его детали
+    // Пока просто закрываем каталог
+    handleCatalogClose()
   }
 
   const renderScreen = () => {
@@ -162,6 +182,16 @@ function App() {
     switch (gameState) {
       case GAME_STATES.ADMIN:
         return <AdminPage onClose={handleAdminClose} />
+      
+      case GAME_STATES.CATALOG:
+        return (
+          <CatalogScreen
+            items={gameItems}
+            catalogId={catalogId}
+            onClose={handleCatalogClose}
+            onItemClick={handleCatalogItemClick}
+          />
+        )
       
       case GAME_STATES.START:
         return <StartScreen onStart={handleStart} />
@@ -208,7 +238,7 @@ function App() {
 
   return (
     <div className={styles.app}>
-      {gameState !== GAME_STATES.ADMIN && <Header />}
+      {gameState !== GAME_STATES.ADMIN && gameState !== GAME_STATES.CATALOG && <Header />}
       {renderScreen()}
     </div>
   )

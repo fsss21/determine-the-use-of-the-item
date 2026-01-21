@@ -40,6 +40,16 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:3001',
         changeOrigin: true,
+        ws: false, // Отключаем WebSocket прокси
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            // Подавляем ошибки подключения, так как у нас есть fallback механизм
+            // Ошибки логируются только в режиме разработки и не критичны
+            if (err.code !== 'ECONNREFUSED') {
+              console.error('Proxy error:', err);
+            }
+          });
+        },
       },
     },
   },

@@ -3,8 +3,13 @@ import styles from './ResultScreen.module.css'
 import Button from '../Button/Button'
 
 function ResultScreen({ item, selectedAnswer, onNext, onViewCatalog }) {
+  // Проверка на существование item и его свойств
+  if (!item || !item.options || selectedAnswer === null || selectedAnswer === undefined) {
+    return null
+  }
+
   const isCorrect = selectedAnswer === item.correctAnswer
-  const correctOption = item.options[item.correctAnswer]
+  const correctOption = item.options[item.correctAnswer] || 'Неизвестно'
 
   return (
     <div className={styles.resultScreen}>
