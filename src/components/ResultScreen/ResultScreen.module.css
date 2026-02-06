@@ -1,27 +1,62 @@
 .resultScreen {
   flex: 1;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  min-height: calc(100vh - 80px);
-  background: #f5f5f5;
+  min-height: 100vh;
+  background-image: url('../../assets/result_screen_img.png');
+  background-size: cover;
+  background-position: center 20%;
+  background-repeat: no-repeat;
+}
+
+/* Затемнение фона для читаемости контента */
+.resultScreen > * {
+  position: relative;
+  z-index: 1;
 }
 
 .container {
-  max-width: 800px;
-  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  position: absolute;
+  top: 10%;
+  max-width: 900px;
+  width: 100%;
+  gap: 10rem;
 }
 
 .resultHeader {
   text-align: center;
-  background: white;
+  background: #AFAC8A;
+  color: #453A26;
   border-radius: 16px;
-  padding: 2rem;
+  padding: 1rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.resultHeader.incorrect {
+  background: #663D3C;
+}
+
+.resultHeader.incorrect .resultTitle,
+.resultHeader.incorrect .correctAnswer {
+  color: #CBB495;
+}
+
+.resultHeader.incorrect .infoTitle,
+.resultHeader.incorrect .infoText,
+.resultHeader.incorrect .additionalInfo,
+.resultHeader.incorrect .additionalText {
+  color: #fff;
+}
+
+.resultHeader .historicalInfo {
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 2rem;
 }
 
 .resultIcon {
@@ -49,47 +84,35 @@
 .resultTitle {
   font-size: 2rem;
   font-weight: 600;
-  color: #333;
   margin: 0 0 0.5rem;
 }
 
 .correctAnswer {
   font-size: 1.1rem;
-  color: #666;
   margin: 0;
   font-weight: 500;
-}
-
-.infoSection {
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .infoTitle {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #333;
   margin: 0 0 1rem;
 }
 
 .infoText {
   font-size: 1.1rem;
   line-height: 1.6;
-  color: #555;
   margin: 0 0 1.5rem;
 }
 
 .additionalInfo {
   padding-top: 1.5rem;
-  border-top: 2px solid #e0e0e0;
 }
 
 .additionalText {
-  font-size: 1rem;
+  font-family: Raleway-v4020;
+  font-size: 18px;
   line-height: 1.6;
-  color: #777;
   font-style: italic;
   margin: 0;
 }
@@ -102,9 +125,14 @@
 
 .actionButton {
   width: 100%;
+  background: #503E24;
+  color: #CBB293;
+  text-transform: uppercase;
+  border: solid #9b8872 3px;
   padding: 1rem 2rem;
   font-size: 1.1rem;
   min-width: auto;
+  cursor: pointer;
 }
 
 @media (max-width: 768px) {

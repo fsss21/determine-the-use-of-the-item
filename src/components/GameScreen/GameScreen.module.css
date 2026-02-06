@@ -1,20 +1,32 @@
 .gameScreen {
   flex: 1;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  min-height: calc(100vh - 80px);
-  background: #f5f5f5;
+  min-height: 100vh;
+  background-image: url('../../assets/game_screen_img.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Затемнение фона для читаемости контента */
+
+.gameScreen > * {
+  position: relative;
+  z-index: 1;
 }
 
 .container {
-  max-width: 800px;
+  max-width: 1600px;
   width: 100%;
+  min-height: 850px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 2rem;
+  align-items: flex-end;
+  gap: 4rem;
 }
 
 .imageContainer {
@@ -37,27 +49,36 @@
   border-radius: 8px;
 }
 
-.itemName {
-  font-size: 2rem;
-  font-weight: 600;
-  color: #333;
-  text-align: center;
-  margin: 0;
-}
-
 .optionsContainer {
   width: 100%;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 1rem;
 }
 
 .optionButton {
   width: 100%;
+  max-width: 800px;
   padding: 1.25rem 2rem;
   font-size: 1.1rem;
   text-align: center;
   min-width: auto;
+  background: #503E24;
+  color: #CBB293;
+  text-transform: uppercase;
+  border: solid #9b8872 3px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+}
+
+.optionButton:hover{
+  background: #CBB495 ;
+  color: #503E24;
+  border: solid #b69567 3px;
 }
 
 @media (max-width: 768px) {
@@ -68,10 +89,6 @@
   .imageContainer {
     max-width: 100%;
     padding: 1rem;
-  }
-  
-  .itemName {
-    font-size: 1.5rem;
   }
   
   .optionButton {

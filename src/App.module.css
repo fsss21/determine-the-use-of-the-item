@@ -3,3 +3,12 @@
   display: flex;
   flex-direction: column;
 }
+
+.screenMessage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #333;
+}

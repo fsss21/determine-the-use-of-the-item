@@ -1,6 +1,6 @@
 import React from 'react'
 import styles from './ResultScreen.module.css'
-import Button from '../Button/Button'
+
 
 function ResultScreen({ item, selectedAnswer, onNext, onViewCatalog }) {
   // Проверка на существование item и его свойств
@@ -14,7 +14,7 @@ function ResultScreen({ item, selectedAnswer, onNext, onViewCatalog }) {
   return (
     <div className={styles.resultScreen}>
       <div className={styles.container}>
-        <div className={styles.resultHeader}>
+        <div className={`${styles.resultHeader} ${!isCorrect ? styles.incorrect : ''}`}>
           <div className={`${styles.resultIcon} ${isCorrect ? styles.correct : styles.incorrect}`}>
             {isCorrect ? '✓' : '✗'}
           </div>
@@ -24,12 +24,10 @@ function ResultScreen({ item, selectedAnswer, onNext, onViewCatalog }) {
           <p className={styles.correctAnswer}>
             {!isCorrect && `Правильный ответ: ${correctOption}`}
           </p>
-        </div>
 
-        <div className={styles.infoSection}>
           <div className={styles.historicalInfo}>
             <h3 className={styles.infoTitle}>Историческая справка</h3>
-            <p className={styles.infoText}>{item.historicalInfo}</p>
+            <p className={styles.infoText}>{item.historicalInfo || 'Нет информации'}</p>
           </div>
 
           {item.additionalInfo && (
@@ -40,27 +38,15 @@ function ResultScreen({ item, selectedAnswer, onNext, onViewCatalog }) {
         </div>
 
         <div className={styles.actions}>
-          <Button
-            onClick={onNext}
-            variant="primary"
-            className={styles.actionButton}
-          >
+          <button type="button" onClick={onNext} className={styles.actionButton}>
             Следующий предмет
-          </Button>
-          <Button
-            onClick={onViewCatalog}
-            variant="secondary"
-            className={styles.actionButton}
-          >
+          </button>
+          <button type="button" onClick={onViewCatalog} className={styles.actionButton}>
             Перейти к каталогу
-          </Button>
-          <Button
-            onClick={() => onViewCatalog(item.catalogId)}
-            variant="secondary"
-            className={styles.actionButton}
-          >
+          </button>
+          <button type="button" onClick={() => onViewCatalog(item.catalogId)} className={styles.actionButton}>
             Найти похожие находки
-          </Button>
+          </button>
         </div>
       </div>
     </div>

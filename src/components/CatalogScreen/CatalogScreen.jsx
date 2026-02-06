@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
 import styles from './CatalogScreen.module.css'
-import Button from '../Button/Button'
+import placeHolderImg from '../../assets/place_holder_img.png'
 
-function CatalogScreen({ items, catalogId = null, onClose, onItemClick }) {
+
+function CatalogScreen({ items, catalogId = null, onClose, onBackToFinished = null, onItemClick }) {
   const [filteredItems, setFilteredItems] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [currentItem, setCurrentItem] = useState(null)
@@ -31,36 +32,36 @@ function CatalogScreen({ items, catalogId = null, onClose, onItemClick }) {
       // Находим текущий предмет по catalogId
       foundCurrentItem = items.find(item => item.catalogId === catalogId)
       setCurrentItem(foundCurrentItem)
-      
+
       if (foundCurrentItem) {
         // Ищем похожие предметы:
         // 1. По первым словам названия (например, "Рубель" и "Рубель старинный")
         // 2. По ключевым словам в исторической справке
         // 3. Исключаем сам текущий предмет
-        const currentNameWords = foundCurrentItem.name.toLowerCase().split(/\s+/)
+        const currentNameWords = (foundCurrentItem.name || '').toLowerCase().split(/\s+/)
         const currentInfoWords = (foundCurrentItem.historicalInfo || '').toLowerCase().split(/\s+/)
-        
+
         filtered = items.filter(item => {
           // Исключаем сам предмет
           if (item.catalogId === catalogId || item.id === foundCurrentItem.id) {
             return false
           }
-          
+
           // Проверяем совпадение по первым словам названия
-          const itemNameWords = item.name.toLowerCase().split(/\s+/)
-          const nameMatch = currentNameWords.some(word => 
+          const itemNameWords = (item.name || '').toLowerCase().split(/\s+/)
+          const nameMatch = currentNameWords.some(word =>
             word.length > 3 && itemNameWords.some(iw => iw.includes(word) || word.includes(iw))
           )
-          
+
           // Проверяем совпадение по ключевым словам в описании
           const itemInfoWords = (item.historicalInfo || '').toLowerCase().split(/\s+/)
-          const infoMatch = currentInfoWords.some(word => 
+          const infoMatch = currentInfoWords.some(word =>
             word.length > 4 && itemInfoWords.some(iw => iw.includes(word) || word.includes(iw))
           )
-          
+
           return nameMatch || infoMatch
         })
-        
+
         // Если похожих не найдено, показываем все остальные предметы
         if (filtered.length === 0) {
           filtered = items.filter(item => item.catalogId !== catalogId && item.id !== foundCurrentItem.id)
@@ -78,9 +79,9 @@ function CatalogScreen({ items, catalogId = null, onClose, onItemClick }) {
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
       filtered = filtered.filter(item =>
-        item.name.toLowerCase().includes(term) ||
-        item.historicalInfo?.toLowerCase().includes(term) ||
-        item.additionalInfo?.toLowerCase().includes(term)
+        (item.name || '').toLowerCase().includes(term) ||
+        (item.historicalInfo || '').toLowerCase().includes(term) ||
+        (item.additionalInfo || '').toLowerCase().includes(term)
       )
     }
 
@@ -101,26 +102,30 @@ function CatalogScreen({ items, catalogId = null, onClose, onItemClick }) {
             {catalogId && currentItem
               ? `Похожие находки: ${currentItem.name}`
               : catalogId
-              ? 'Похожие находки'
-              : 'Каталог предметов'
+                ? 'Похожие находки'
+                : 'Каталог предметов'
             }
           </h2>
-          <Button
-            onClick={onClose}
-            variant="secondary"
-            className={styles.closeButton}
-          >
-            Закрыть
-          </Button>
+          <div className={styles.headerButtons}>
+            <button type="button" onClick={onClose} className={styles.navButton}>
+              Назад
+            </button>
+            {onBackToFinished && (
+              <button type="button" onClick={onBackToFinished} className={styles.navButton}>
+                Вернуться на финальный экран
+              </button>
+            )}
+          </div>
         </div>
 
         <div className={styles.searchSection}>
           <input
-            type="text"
+            type="search"
             placeholder="Поиск по названию или описанию..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchInput}
+            aria-label="Поиск по названию или описанию"
           />
         </div>
 
@@ -134,14 +139,14 @@ function CatalogScreen({ items, catalogId = null, onClose, onItemClick }) {
               >
                 <div className={styles.itemImage}>
                   <img
-                    src={item.image}
-                    alt={item.name}
+                    src={item.image || placeHolderImg}
+                    alt={item.name || 'Предмет'}
                     onError={(e) => {
                       // Предотвращаем бесконечный цикл - используем Set для отслеживания ошибок
                       const imgKey = `${item.id}-${item.image}`
                       if (!imageErrorsRef.current.has(imgKey)) {
                         imageErrorsRef.current.add(imgKey)
-                        const fallbackSrc = 'https://via.placeholder.com/300x300?text=' + encodeURIComponent(item.name)
+                        const fallbackSrc = placeHolderImg
                         // Проверяем, что текущий src не равен fallback, чтобы избежать цикла
                         if (e.target.src !== fallbackSrc && e.target.dataset.fallback !== 'true') {
                           e.target.dataset.fallback = 'true'
@@ -159,7 +164,7 @@ function CatalogScreen({ items, catalogId = null, onClose, onItemClick }) {
                   />
                 </div>
                 <div className={styles.itemInfo}>
-                  <h3 className={styles.itemName}>{item.name}</h3>
+                  <h3 className={styles.itemName}>{item.name || 'Без названия'}</h3>
                   <p className={styles.itemDescription}>
                     {item.historicalInfo?.substring(0, 150)}
                     {item.historicalInfo?.length > 150 ? '...' : ''}

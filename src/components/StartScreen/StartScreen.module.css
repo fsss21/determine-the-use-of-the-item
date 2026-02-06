@@ -1,37 +1,60 @@
 .startScreen {
   flex: 1;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: calc(100vh - 80px);
+  min-height: 100vh;
+  background-image: url('../../assets/start_sreen_img.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.startScreen .content {
+  position: relative;
+  z-index: 1;
 }
 
 .content {
   text-align: center;
-  max-width: 600px;
+  max-width: 900px;
   color: white;
 }
 
 .title {
-  font-size: 3rem;
+  font-size: 46px;
   font-weight: 700;
   margin-bottom: 1rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  color: #221203;
+  text-transform: uppercase;
 }
 
 .subtitle {
-  font-size: 1.5rem;
+  font-size: 44px;
   font-weight: 400;
   margin-bottom: 3rem;
-  opacity: 0.95;
+  color: #221203;
+  text-transform: uppercase;
 }
 
 .startButton {
-  padding: 1rem 3rem;
-  font-size: 1.25rem;
-  min-width: 200px;
+  width: 33.33%;
+  width: 100%;
+  max-width: 500px;
+  padding: 30px 60px;
+  font-size: 28px;
+  font-weight: bold;
+  background: #503E24;
+  color: #CBB293;
+  text-transform: uppercase;
+  border: solid #9b8872 3px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
 }
 
 @media (max-width: 768px) {

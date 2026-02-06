@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import styles from './GameScreen.module.css'
-import Button from '../Button/Button'
+import placeHolderImg from '../../assets/place_holder_img.png'
+
 
 function GameScreen({ item, onAnswer }) {
   const [selectedAnswer, setSelectedAnswer] = useState(null)
@@ -33,16 +34,16 @@ function GameScreen({ item, onAnswer }) {
     <div className={styles.gameScreen}>
       <div className={styles.container}>
         <div className={styles.imageContainer}>
-          <img 
+          <img
             key={`${item.id}-${item.image}`}
-            src={item.image || 'https://via.placeholder.com/400x400?text=Изображение'} 
+            src={item.image || placeHolderImg}
             alt={item.name || 'Предмет'}
             className={styles.itemImage}
             onError={(e) => {
               // Предотвращаем бесконечный цикл - меняем src только один раз
               if (!imageErrorRef.current && e.target.src !== e.target.dataset.fallback) {
                 imageErrorRef.current = true
-                const fallbackSrc = 'https://via.placeholder.com/400x400?text=' + encodeURIComponent(item.name || 'Предмет')
+                const fallbackSrc = placeHolderImg
                 e.target.dataset.fallback = fallbackSrc
                 e.target.src = fallbackSrc
               } else {
@@ -60,19 +61,17 @@ function GameScreen({ item, onAnswer }) {
             loading="lazy"
           />
         </div>
-        
-        <h2 className={styles.itemName}>{item.name || 'Без названия'}</h2>
-        
+
         <div className={styles.optionsContainer}>
           {item.options.map((option, index) => (
-            <Button
+            <button
               key={index}
+              type="button"
               onClick={() => handleAnswer(index)}
-              variant={selectedAnswer === index ? 'secondary' : 'primary'}
               className={styles.optionButton}
             >
               {option || `Вариант ${index + 1}`}
-            </Button>
+            </button>
           ))}
         </div>
       </div>

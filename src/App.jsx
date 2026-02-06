@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import styles from './App.module.css'
-import Header from './components/Header/Header'
 import StartScreen from './components/StartScreen/StartScreen'
 import GameScreen from './components/GameScreen/GameScreen'
 import ResultScreen from './components/ResultScreen/ResultScreen'
+import FinishedScreen from './components/FinishedScreen/FinishedScreen'
 import AdminPage from './components/AdminPage/AdminPage'
 import CatalogScreen from './components/CatalogScreen/CatalogScreen'
 
@@ -11,6 +11,7 @@ const GAME_STATES = {
   START: 'start',
   PLAYING: 'playing',
   RESULT: 'result',
+  FINISHED: 'finished',
   ADMIN: 'admin',
   CATALOG: 'catalog'
 }
@@ -22,6 +23,8 @@ function App() {
   const [gameItems, setGameItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [catalogId, setCatalogId] = useState(null)
+  const [correctCount, setCorrectCount] = useState(0)
+  const [fromFinishedScreen, setFromFinishedScreen] = useState(false)
 
   const loadGameItems = useCallback(async () => {
     try {
@@ -60,10 +63,6 @@ function App() {
     loadGameItems()
   }, [loadGameItems])
 
-  const handleAdmin = () => {
-    setGameState(GAME_STATES.ADMIN)
-  }
-
   const handleAdminClose = () => {
     setGameState(GAME_STATES.START)
     loadGameItems() // Перезагружаем предметы после возможных изменений
@@ -98,16 +97,20 @@ function App() {
     setGameState(GAME_STATES.PLAYING)
     setCurrentItemIndex(0)
     setSelectedAnswer(null)
+    setCorrectCount(0)
   }
 
   const handleAnswer = async (answerIndex) => {
     setSelectedAnswer(answerIndex)
+    const item = gameItems[currentItemIndex]
+    const isCorrect = item && answerIndex === item.correctAnswer
+    if (isCorrect) {
+      setCorrectCount(c => c + 1)
+    }
     setGameState(GAME_STATES.RESULT)
     
     // Сохраняем статистику - используем актуальный индекс
-    const item = gameItems[currentItemIndex]
     if (item) {
-      const isCorrect = answerIndex === item.correctAnswer
       try {
         await fetch('/api/statistics', {
           method: 'POST',
@@ -133,28 +136,44 @@ function App() {
       setSelectedAnswer(null)
       setGameState(GAME_STATES.PLAYING)
     } else {
-      // Игра закончена, возвращаемся на стартовый экран
-      setGameState(GAME_STATES.START)
+      // Игра закончена — показываем финальный экран
+      setGameState(GAME_STATES.FINISHED)
       setCurrentItemIndex(0)
       setSelectedAnswer(null)
     }
   }
 
+  const handlePlayAgain = () => {
+    setGameState(GAME_STATES.START)
+    setCurrentItemIndex(0)
+    setSelectedAnswer(null)
+    setCorrectCount(0)
+  }
+
   const handleViewCatalog = (itemCatalogId = null) => {
     setCatalogId(itemCatalogId)
+    setFromFinishedScreen(gameState === GAME_STATES.FINISHED)
     setGameState(GAME_STATES.CATALOG)
   }
 
   const handleCatalogClose = () => {
     setCatalogId(null)
-    // Возвращаемся к экрану результата, если он был открыт
-    // Проверяем актуальное состояние через gameItems
-    const item = gameItems[currentItemIndex]
-    if (item && selectedAnswer !== null) {
-      setGameState(GAME_STATES.RESULT)
+    if (fromFinishedScreen) {
+      setGameState(GAME_STATES.FINISHED)
     } else {
-      setGameState(GAME_STATES.START)
+      const item = gameItems[currentItemIndex]
+      if (item && selectedAnswer !== null) {
+        setGameState(GAME_STATES.RESULT)
+      } else {
+        setGameState(GAME_STATES.START)
+      }
     }
+  }
+
+  const handleBackToFinished = () => {
+    setCatalogId(null)
+    setFromFinishedScreen(true)
+    setGameState(GAME_STATES.FINISHED)
   }
 
   const handleCatalogItemClick = (item) => {
@@ -166,14 +185,7 @@ function App() {
   const renderScreen = () => {
     if (loading) {
       return (
-        <div style={{ 
-          flex: 1, 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          fontSize: '1.5rem',
-          color: '#333'
-        }}>
+        <div className={styles.screenMessage}>
           Загрузка...
         </div>
       )
@@ -189,7 +201,18 @@ function App() {
             items={gameItems}
             catalogId={catalogId}
             onClose={handleCatalogClose}
+            onBackToFinished={fromFinishedScreen ? handleBackToFinished : null}
             onItemClick={handleCatalogItemClick}
+          />
+        )
+
+      case GAME_STATES.FINISHED:
+        return (
+          <FinishedScreen
+            correctCount={correctCount}
+            totalCount={gameItems.length}
+            onPlayAgain={handlePlayAgain}
+            onViewCatalog={() => handleViewCatalog(null)}
           />
         )
       
@@ -199,14 +222,7 @@ function App() {
       case GAME_STATES.PLAYING:
         if (!currentItem) {
           return (
-            <div style={{ 
-              flex: 1, 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              fontSize: '1.5rem',
-              color: '#333'
-            }}>
+            <div className={styles.screenMessage}>
               Нет доступных предметов для игры
             </div>
           )
@@ -238,7 +254,6 @@ function App() {
 
   return (
     <div className={styles.app}>
-      {gameState !== GAME_STATES.ADMIN && gameState !== GAME_STATES.CATALOG && <Header />}
       {renderScreen()}
     </div>
   )
